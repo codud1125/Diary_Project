@@ -19,6 +19,8 @@ label1 = tkinter.Label(image=calendar)
 label1.image = calendar
 label1.place(x=0, y=0)
 
+activitydic = {}
+
 # Step 2: Import a button that selects a date that opens up a new window
 
 def btncmd():
@@ -61,6 +63,115 @@ def newWindow_daily():
     label_daily = tkinter.Label(newWindow, image=daily)
     label_daily.image = daily
     label_daily.place(x=0, y=0)
+
+    activityentry(newWindow)
+    return
+
+def activityentry(newWindow):
+    # Upper half configuration
+    listbox = Listbox(newWindow, width = 63, height=10)
+
+    listbox.place(x=250, y=10)
+
+    def loadbtncommand():
+        txt.delete("1.0", END)
+        activityname.delete(0, END)
+
+        combobox_starthour.set(str(activitydic[f'{month}/{date}'][listbox.curselection()[0]][0]) + "시")
+        combobox_startmin.set(str(activitydic[f'{month}/{date}'][listbox.curselection()[0]][1]) + "분")
+        combobox_durationhour.set(str(activitydic[f'{month}/{date}'][listbox.curselection()[0]][6]) + "시간")
+        combobox_durationmin.set(str(activitydic[f'{month}/{date}'][listbox.curselection()[0]][7]) + "분동안")
+        
+        activityname.insert(0, activitydic[f'{month}/{date}'][listbox.curselection()[0]][4])
+        txt.insert(END, activitydic[f'{month}/{date}'][listbox.curselection()[0]][5])
+
+    def deletebtncommand():
+        for index in reversed(listbox.curselection()):
+            listbox.delete(index)
+        print(activitydic)
+        activitydic[f'{month}/{date}'].pop(index)
+
+    btn_load = Button(newWindow, text="불러오기", command=loadbtncommand)
+    btn_load.place(x=370, y=180)
+
+    btn_delete = Button(newWindow, text="삭제하기", command=deletebtncommand)
+    btn_delete.place(x=470, y=180)
+
+    # Bottom half configuration
+    hour_value = [str(i) + "시" for i in range(6,25)]
+    minute_value = [str(i) + "분" for i in range(0,61)] 
+    duration_minute_Value = [str(i) + "시간" for i in range(0,25)]
+    duration_hour_value = [str(i) + "분동안" for i in range(0,61)]
+
+    combobox_starthour = ttk.Combobox(newWindow, height=5, values=hour_value, width=4)
+    combobox_startmin = ttk.Combobox(newWindow, height=5, values=minute_value, width=4)
+    combobox_starthour.place(x=250, y=215)
+    combobox_starthour.set("시")
+    combobox_startmin.place(x=300, y=215)
+    combobox_startmin.set("분")
+
+    combobox_durationhour = ttk.Combobox(newWindow, height=5, values=duration_minute_Value, width=5)
+    combobox_durationmin = ttk.Combobox(newWindow, height=5, values=duration_hour_value, width=7)
+    combobox_durationhour.place(x=400, y=215)
+    combobox_durationhour.set("시간")
+    combobox_durationmin.place(x=460, y=215)
+    combobox_durationmin.set("분동안")
+
+    activityname = Entry(newWindow, width=47)
+    activityname.place(x=250, y=240)
+    activityname.insert(0, "시간을 선택하고 할 활동을 한 줄로 입력하세요")
+
+    txt = Text(newWindow, width=47, height=10)
+    txt.place(x=250, y=260)
+    txt.insert(END, "활동에 관한 어떤 정보던 입력하세요")
+
+    def infoadd(activitydic):
+        print(activitydic)
+        actlen = len(activitydic[f'{month}/{date}'])-1
+        listbox.insert(END, str(activitydic[f'{month}/{date}'][actlen][0]) + '시 ' +
+         str(activitydic[f'{month}/{date}'][actlen][1]) + '분 시작 ' +
+         str(activitydic[f'{month}/{date}'][actlen][2]) + '시 ' +
+         str(activitydic[f'{month}/{date}'][actlen][3]) + '분 종료: ' +
+         activitydic[f'{month}/{date}'][actlen][4])
+
+    def dailybtncommand():
+        starthour = combobox_starthour.get()
+        startmin = combobox_startmin.get()        
+        durationhour = combobox_durationhour.get()
+        durationminute = combobox_durationmin.get()
+
+        aname = activityname.get()
+        atxt = txt.get("1.0", END)
+        print(aname)
+        print(atxt)
+        if starthour == '시' or startmin == '분' or durationhour == '시간' or durationminute == '분동안':
+            messagebox.showwarning("경고", "모든 시간 항목을 선택하세요.")
+            return
+
+        starthour = int(starthour[:starthour.find('시')])
+        startmin = int(startmin[:startmin.find('분')])
+        durationhour = int(durationhour[:durationhour.find('시간')])
+        durationminute = int(durationminute[:durationminute.find('분동안')])
+
+        endhour = starthour + durationhour
+        endminute = startmin + durationminute
+
+        if endminute >= 60:
+            endminute -=60
+            endhour += 1
+    
+        if f'{month}/{date}' not in activitydic:
+            activitydic[f'{month}/{date}'] = []
+            activitydic[f'{month}/{date}'].append([starthour, startmin, endhour, endminute, aname, atxt, durationhour, durationminute])
+        else:
+            activitydic[f'{month}/{date}'].append([starthour, startmin, endhour, endminute, aname, atxt, durationhour, durationminute])
+        
+        infoadd(activitydic)
+
+    btn_daily = Button(newWindow, text="저장하기", command=dailybtncommand)
+    btn_daily.place(x=420, y=450)
+
+    
 
 
 root.resizable(False, False)
