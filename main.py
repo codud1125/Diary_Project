@@ -1,3 +1,4 @@
+from sqlite3 import Date
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -10,7 +11,11 @@ import os
 
 # ---------------------------- Button Command setup ------------------------------- #
 def clickdate(date):
-    print(date)
+    global data
+    datelist = str(date).split('-')
+    canvas_left.itemconfig(card_month, text=f'{datelist[1]}/')
+    canvas_left.itemconfig(card_date, text=f'{datelist[2]}')
+    canvas_left.itemconfig(card_day, text=f'{data[date]["day"]}')
 
 # ---------------------------- UI SETUP ------------------------------- #
 BACKGROUND_COLOR = "#B1DDC6"
@@ -29,9 +34,16 @@ try:
         data = json.load(file)
 except:
     data = {}
+    dayidx = 0 
+    day = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     while (start_date <= end_date):
         data[start_date] = {}
+        data[start_date]['day'] = day[dayidx]
+        dayidx += 1
+        if dayidx > 6:
+            dayidx = 0
         start_date += delta
+print(data)
 
 # Canvas (Left)
 canvas_left = Canvas(width = 315, height = 480)
@@ -45,8 +57,9 @@ row = 5
 column = 0
 
 # Labels
-card_title = canvas_left.create_text(100, 30, text='Month/', font=('Ariel', '40', 'italic'),fill=BACKGROUND_COLOR)
-card_word = canvas_left.create_text(120, 60, text='Date', font=('Ariel', '40', 'italic'),fill=BACKGROUND_COLOR)
+card_month = canvas_left.create_text(100, 30, text='Month/', font=('Ariel', '40', 'italic'),fill=BACKGROUND_COLOR)
+card_date = canvas_left.create_text(120, 60, text='Date', font=('Ariel', '40', 'italic'),fill=BACKGROUND_COLOR)
+card_day = canvas_left.create_text(250, 70, text='Day', font=('Ariel', '15'),fill=BACKGROUND_COLOR)
 
 
 while (start_date <= end_date):
