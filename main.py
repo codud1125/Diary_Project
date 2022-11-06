@@ -13,6 +13,7 @@ import os
 def clickdate(date):
     global data
     datelist = str(date).split('-')
+    # canvas_left.itemconfig(card_month, text=f'{date.month}')
     canvas_left.itemconfig(card_month, text=f'{datelist[1]}/')
     canvas_left.itemconfig(card_date, text=f'{datelist[2]}')
     canvas_left.itemconfig(card_day, text=f'{data[date]["day"]}')
