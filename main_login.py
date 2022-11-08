@@ -18,7 +18,9 @@ import calendar
 
 def main_page():
 
-    canvas.config(width=480, height=200)
+    root.config(bg=TEXT_COLOR)
+
+    canvas.config(width=480, height=200, bg = TEXT_COLOR)
     canvas.itemconfig(welcome_label, text='')
     canvas.itemconfig(ID_label, text='')
     canvas.itemconfig(password_label, text='')
@@ -30,34 +32,63 @@ def main_page():
     str = c.formatmonth(2023, 3)
 
     def redraw(year, month):
+        
+        def openlist():
+            wd = os.getcwd()
+
+            listwindow = Toplevel(root)
+            listwindow.title('Diary by Chun')
+            listwindow.config(width=130, height=150, bg=TEXT_COLOR)
+            listwindow.resizable(False, False)
+
+            label_list = Label(listwindow, text=f"{Id}'s diary list")
+            label_list.config(font = ("Courier", 10, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, anchor='w')
+            label_list.grid(row=0,column=0)
+
+            listbox = Listbox(listwindow)
+            listbox.config(font = ("Courier"), bg = TEXT_COLOR, fg = BACKGROUND_COLOR)
+            listbox.grid(row=1, column=0)
+
+            with open(wd + "/Py_Korea_Project/user_data.json", "r") as file:
+                data = json.load(file) 
+                entry = data[Id]
+                len_journal = len(data[Id])
+                if len_journal > 1:
+                    for i in range(1, len_journal):
+                        listbox.insert(END, list(entry.keys())[i])
+
+            button_list = Button(listwindow, text="Select")
+            button_list.config(font = ("Courier", 10, "italic"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, borderwidth = 0)
+            button_list.grid(row=3, column=0)
+
         global Id
 
         '''Redraws the calendar for the given year and month'''
         label_user = Label(canvas, text=f"{Id}'s diary")
-        label_user.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, anchor='w')
+        label_user.config(font = ("Courier", 15, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, anchor='w')
         label_user.grid(row=1,column=0)
 
         label_placeholder = Label(canvas, text=f" ")
-        label_placeholder.config(font = ("Courier", 30), fg = 'white', bg = BACKGROUND_COLOR, anchor='w')
+        label_placeholder.config(font = ("Courier", 30), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, anchor='w')
         label_placeholder.grid(row=0,column=1)
 
         left_arrow = Button(canvas, text="<", command=lambda: redraw(year, month-1))
-        left_arrow.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        left_arrow.config(font = ("Courier", 15, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, borderwidth = 0)
         left_arrow.grid(row=0, column=2, sticky="nsew")
 
         right_arrow = Button(canvas, text=">", command=lambda: redraw(year, month+1))
-        right_arrow.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        right_arrow.config(font = ("Courier", 15, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, borderwidth = 0)
         right_arrow.grid(row=0, column=3, sticky="nsew")
 
         if year == 2023 and (month == 3 or month==4):
             label_month_year = Label(canvas, text=f"{month}/{year}")
-            label_month_year.config(font = ("Courier", 30), fg = 'white', bg = BACKGROUND_COLOR)
+            label_month_year.config(font = ("Courier", 30, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR)
             label_month_year.grid(row=0,column=0)
 
                 # day of the week headings
             for col, day in enumerate(("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")):
                 label = Label(canvas, text=day)
-                label.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR)
+                label.config(font = ("Courier", 15, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR)
                 label.grid(row=1, column=col+2, sticky="nsew")
 
                 # buttons for each day
@@ -67,12 +98,21 @@ def main_page():
                     text = "" if day == 0 else day
                     state = "normal" if day > 0 else "disabled"
                     cell = Button(canvas, text=text, state=state, command=lambda day=day: set_day(month, day))
-                    cell.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+                    cell.config(font = ("Courier", 15, "bold"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, borderwidth = 0)
+                    if col == 6:
+                        cell.config(fg='#e6394d')
                     cell.grid(row=row+2, column=col+2, sticky="nsew")
+                    
         elif month>4:
             month = 4
         elif month<3:
             month = 3
+
+
+        button_list = Button(canvas, text="View your list", command=openlist)
+        button_list.config(font = ("Courier", 10, "bold", "italic"), fg = BACKGROUND_COLOR, bg = TEXT_COLOR, borderwidth = 0)
+        button_list.grid(row=6, column=0, columnspan=1, sticky='W')
+
         canvas.pack()
 
 
@@ -81,13 +121,16 @@ def main_page():
 
         for child in canvas.winfo_children():
             child.destroy()
+        
+        root.config(bg=BACKGROUND_COLOR)
+        canvas.config(width=480, height=200, bg = BACKGROUND_COLOR)
 
         go_back_btn = Button(canvas, text="<", command=main_page)
-        go_back_btn.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        go_back_btn.config(font = ("Courier", 15, "bold"), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0)
         go_back_btn.grid(row=0, column=0)
 
         label_date = Label(canvas, text=f'{calendar.month_name[month]} {day}, 2023♥')
-        label_date.config(font = ("Courier", 15, "bold"), fg = 'white', bg = BACKGROUND_COLOR)
+        label_date.config(font = ("Courier", 15, "bold"), fg = TEXT_COLOR, bg = BACKGROUND_COLOR)
         label_date.grid(row=0, column=1, sticky='w')
 
         txt = Text(canvas, bg=BACKGROUND_COLOR, width= 40, height=20, borderwidth=2, relief='ridge')
@@ -105,7 +148,7 @@ def main_page():
             txt.insert(END, content)
 
         save_btn = Button(canvas, text="Save", command=lambda: save_diary(date))
-        save_btn.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        save_btn.config(font = ("Courier", 15, "bold"), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0)
         save_btn.grid(row=4, column=1, sticky='e')
 
         def save_diary(date):
@@ -165,12 +208,12 @@ def signup():
         ID_textbox.delete(0, END)
         password_textbox.delete(0, END)
 
-        canvas.itemconfig(welcome_label, text='Welcome to Korea trip planner!')
+        canvas.itemconfig(welcome_label, text='Welcome to your diary!')
 
-        button_login.config(text = "Login", font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0, command = login)
-        button_login.place(x=160, y=150)
-        button_signup.config(text = "Signup", font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0, command = signup)
-        button_signup.place(x=240, y=150)
+        button_login.config(text = "Login", font = ("Courier", 15), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0, command = login)
+        button_login.place(x=40, y=170)
+        button_signup.config(text = "Signup", font = ("Courier", 15), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0, command = signup)
+        button_signup.place(x=180, y=170)
         
         return()
 
@@ -224,43 +267,44 @@ def signup():
 
     canvas.itemconfig(welcome_label, text='Signup Page')
 
-    button_login.config(text = "Go back to Login Page", font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0, command = login_ui)
-    button_login.place(x=50, y=150)
-    button_signup.config(text = "Signup", font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0, command = add_user_data)
-    button_signup.place(x=350, y=150)
+    button_login.config(text = "Login Page", font = ("Courier", 15), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0, command = login_ui)
+    button_login.place(x=20, y=170)
+    button_signup.config(text = "Signup", font = ("Courier", 15), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0, command = add_user_data)
+    button_signup.place(x=180, y=170)
 
     return()
 # ---------------------------- UI SETUP ------------------------------- #
-BACKGROUND_COLOR = "#a474ad"
+BACKGROUND_COLOR = "#787296"
+TEXT_COLOR = '#fcefe3'
 
 root = Tk()
-root.title("Korea Planner")
+root.title("Diary by Chun")
 root.config(padx=50, pady=50, background=BACKGROUND_COLOR)
 
-canvas = Canvas(width = 480, height = 200)
+canvas = Canvas(width = 300, height = 200)
 canvas.config(bg=BACKGROUND_COLOR, highlightthickness=0)
 canvas.pack()
 
 #Labels:
 
-welcome_label = canvas.create_text(0, 0, text="Welcome to Korea trip planner!", font = ("Courier", 20, "bold"), fill = 'white', anchor='nw')
-ID_label = canvas.create_text(100, 80, text="ID: ", font = ("Courier", 10), fill = 'white', anchor='nw')
-password_label = canvas.create_text(100, 110, text="Password: ", font = ("Courier", 10), fill = 'white', anchor='nw')
+welcome_label = canvas.create_text(20, 0, text="Welcome to your diary!", font = ("Courier", 15, "bold"), fill = TEXT_COLOR, anchor='nw')
+ID_label = canvas.create_text(20, 80, text="ID: ", font = ("Courier", 15, "italic"), fill = TEXT_COLOR, anchor='nw')
+password_label = canvas.create_text(20, 110, text="Password: ", font = ("Courier", 15, "italic"), fill = TEXT_COLOR, anchor='nw')
 
 #Textbox:
-ID_textbox = Entry(canvas, width=20)
-ID_textbox.place(x=250, y=80)
+ID_textbox = Entry(canvas, width=20, bg = TEXT_COLOR)
+ID_textbox.place(x=150, y=80)
 ID_textbox.focus()
-password_textbox = Entry(canvas, width=20, show="*")
-password_textbox.place(x=250, y=110)
+password_textbox = Entry(canvas, width=20, show="*", bg = TEXT_COLOR)
+password_textbox.place(x=150, y=110)
 
 #Buttons:
 button_login = Button(canvas, text="Login", command=login)
-button_login.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
-button_login.place(x=160, y=150)
+button_login.config(font = ("Courier", 15, "italic"), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0)
+button_login.place(x=40, y=170)
 button_signup = Button(canvas, text="Signup", command=signup)
-button_signup.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
-button_signup.place(x=240, y=150)
+button_signup.config(font = ("Courier", 15, "italic"), fg = TEXT_COLOR, bg = BACKGROUND_COLOR, borderwidth = 0)
+button_signup.place(x=180, y=170)
 
 
 root.mainloop()
