@@ -15,33 +15,124 @@ import calendar
 
 # ---------------------------- Button Command setup ------------------------------- #
 
-def main_page():
-    print("Entering main page...")
 
-    canvas.config(width=300, height=500)
+def main_page():
+
+    canvas.config(width=480, height=200)
     canvas.itemconfig(welcome_label, text='')
     canvas.itemconfig(ID_label, text='')
     canvas.itemconfig(password_label, text='')
 
-    ID_textbox.place_forget()
-    password_textbox.place_forget()
-    button_login.place_forget()
-    button_signup.place_forget()
+    for child in canvas.winfo_children():
+        child.destroy()
 
     c = calendar.TextCalendar(calendar.SUNDAY)
     str = c.formatmonth(2023, 3)
 
-    calendar_label = canvas.create_text(0, 0, text=str, font = ("Courier", 15, "bold"), fill = 'white', anchor='nw')
+    def redraw(year, month):
+        global Id
+
+        '''Redraws the calendar for the given year and month'''
+        label_user = Label(canvas, text=f"{Id}'s diary")
+        label_user.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, anchor='w')
+        label_user.grid(row=1,column=0)
+
+        label_placeholder = Label(canvas, text=f" ")
+        label_placeholder.config(font = ("Courier", 30), fg = 'white', bg = BACKGROUND_COLOR, anchor='w')
+        label_placeholder.grid(row=0,column=1)
+
+        left_arrow = Button(canvas, text="<", command=lambda: redraw(year, month-1))
+        left_arrow.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        left_arrow.grid(row=0, column=2, sticky="nsew")
+
+        right_arrow = Button(canvas, text=">", command=lambda: redraw(year, month+1))
+        right_arrow.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        right_arrow.grid(row=0, column=3, sticky="nsew")
+
+        if year == 2023 and (month == 3 or month==4):
+            label_month_year = Label(canvas, text=f"{month}/{year}")
+            label_month_year.config(font = ("Courier", 30), fg = 'white', bg = BACKGROUND_COLOR)
+            label_month_year.grid(row=0,column=0)
+
+                # day of the week headings
+            for col, day in enumerate(("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")):
+                label = Label(canvas, text=day)
+                label.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR)
+                label.grid(row=1, column=col+2, sticky="nsew")
+
+                # buttons for each day
+            cal = calendar.monthcalendar(year, month)
+            for row, week in enumerate(cal):
+                for col, day in enumerate(week):
+                    text = "" if day == 0 else day
+                    state = "normal" if day > 0 else "disabled"
+                    cell = Button(canvas, text=text, state=state, command=lambda day=day: set_day(month, day))
+                    cell.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+                    cell.grid(row=row+2, column=col+2, sticky="nsew")
+        elif month>4:
+            month = 4
+        elif month<3:
+            month = 3
+        canvas.pack()
 
 
-    # cal = Calendar(canvas, selectmode='day',
-    # year=2023, month=3, day=24)
+    def set_day(month, day):
+        wd = os.getcwd()
 
-    # cal.pack(pady=20)
+        for child in canvas.winfo_children():
+            child.destroy()
 
+        go_back_btn = Button(canvas, text="<", command=main_page)
+        go_back_btn.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        go_back_btn.grid(row=0, column=0)
+
+        label_date = Label(canvas, text=f'{calendar.month_name[month]} {day}, 2023♥')
+        label_date.config(font = ("Courier", 15, "bold"), fg = 'white', bg = BACKGROUND_COLOR)
+        label_date.grid(row=0, column=1, sticky='w')
+
+        txt = Text(canvas, bg=BACKGROUND_COLOR, width= 40, height=20, borderwidth=2, relief='ridge')
+        txt.grid(row=1, column=0, rowspan=2, columnspan=2)
+
+        date = f"2023-{month}-{day}"
+
+        try:
+            with open(wd + "/Py_Korea_Project/user_data.json", "r") as file:
+                data = json.load(file) 
+                content = data[Id][date]
+        except KeyError:
+            pass
+        else:
+            txt.insert(END, content)
+
+        save_btn = Button(canvas, text="Save", command=lambda: save_diary(date))
+        save_btn.config(font = ("Courier", 15), fg = 'white', bg = BACKGROUND_COLOR, borderwidth = 0)
+        save_btn.grid(row=4, column=1, sticky='e')
+
+        def save_diary(date):
+            global Id
+            global password 
+
+            wd = os.getcwd()
+            entry = txt.get("1.0", END)
+
+            main_page()
+
+            with open(wd + "/Py_Korea_Project/user_data.json", "r") as jsonFile:
+                data = json.load(jsonFile)
+
+            data[Id][date] = entry
+
+            with open(wd + "/Py_Korea_Project/user_data.json", "w") as jsonFile:
+                json.dump(data, jsonFile)            
+            
+            return
+
+    redraw(2023, 3)
     return
 
 def login():
+    global Id
+    global password
     Id = ID_textbox.get()
     password = password_textbox.get()
     wd = os.getcwd()
@@ -84,6 +175,9 @@ def signup():
         return()
 
     def add_user_data():
+        global Id
+        global password
+
         Id = ID_textbox.get()
         password = password_textbox.get()
         wd = os.getcwd()
@@ -104,6 +198,7 @@ def signup():
         except FileNotFoundError:
             with open(wd +"/Py_Korea_Project/user_data.json", "w") as file:
                 json.dump(new_data, file, indent=4)
+            messagebox.showinfo("Info", "Signup was successful")
         else:
             if Id in data.keys():
                 messagebox.showwarning("Warning", "Username is already taken. Please choose another username")
