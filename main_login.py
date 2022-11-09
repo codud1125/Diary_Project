@@ -186,7 +186,9 @@ def login():
         try:
             with open(wd + "/Py_Korea_Project/user_data.json", "r") as file:
                 data = json.load(file) 
+                print(data)
                 user_password = data[Id]['password']
+                print(user_password)
         except FileNotFoundError:
             messagebox.showerror("Error", "There is no user associated with the login.")
             return
